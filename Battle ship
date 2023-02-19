@@ -1,0 +1,2210 @@
+#include<iostream>
+#include<iomanip>
+#include<conio.h>
+#include<windows.h>
+#include<stdlib.h>
+#include<cstdlib>
+#include<string>
+#include<cctype>
+
+HANDLE screen = GetStdHandle(STD_OUTPUT_HANDLE);
+HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+
+using namespace std;
+
+char map1[8][8]={' '};
+char map2[8][8]={' '};
+
+int beginning(); //開場畫面，以跑馬燈方式呈現，並回傳玩家選擇到destiny()
+int destiny (int chose);//根據begining的回傳值決定，1:開始遊戲；2:結束遊戲；3或是輸入錯誤3次:彩蛋
+void story ();//開場故事，介紹遊戲背景
+int modeselete(); // 遊戲模式設定(easy/hard, with/without bombs)
+void shiplist();  //艦隊列表
+void printmap(char map[][8], int mode); //列印地圖，有三種模式，1:設置船時；2:easy mode；3:hard mode
+void setship(int n, char x, char y, char dir, char map[][8]);  //根據座標及方向設置船
+void victorypage(string player); //勝利畫面，星星閃爍畫面
+void tiepage();//平手畫面，星星閃爍畫面
+void eraseline(); //清除一行
+void gotoxy(int xpos, int ypos); //移動游標
+
+int main(){
+    playagain:
+
+	//initialize
+	for(int i=0;i<8;i++){
+		for(int j=0;j<8;j++){
+			map1[i][j]=' ';
+			map2[i][j]=' ';
+		}
+	}
+
+
+	//beginning
+	int n, m;
+	n=beginning();
+	m=destiny(n);
+	system ("cls");
+	if(m==3){
+		goto playagain;
+	}
+
+	//players' names
+	string player1, player2;
+	cout << "Dear:\n  I can see the incredible talent flowing in your body.\n";
+	cout << "Thus, you have been selected to be one of us, give me your title and join us.\n";
+	cout << "We could rule the world easily and lead a happy happy life.\n\n";
+	cout << "                                                            by Kai Chieh Yeh\n\n\n";
+	cout << "sign here : ";
+	cin >> player1;
+	system ("cls");
+	cout << "To my friend:\n  Hi, the determination in your eyes is really inspiring.\n";
+	cout << "Moreover, you are also a single dog...\n";
+	cout << "Never mind, dogs together strong, I believe if we team up we can kick Yeh's ass.\n";
+	cout << "Write down your IG username so that I can contact with you.\n";
+	cout << "(BTW my IG is jelin____0130 just in case you miss the story part).\n\n";
+	cout << "                                                                     by ICE Lin\n\n\n";
+	cout << "Your IG :) : ";
+	cin >> player2;
+
+	//mode selection
+	system ("cls");
+	int mode=modeselete();
+
+	//settling
+	int ship=5;
+	string shipname;
+	int shipsize;
+
+	//player1 adding
+	while(ship--){
+		system ("cls");
+
+		if(ship<4){
+			printmap(map1, 1);
+		}
+		else{
+			shiplist();
+		}
+
+		if(ship==4){
+			shipname="Carrier";
+			shipsize=5;
+		}
+		else if(ship==3){
+			shipname="Battleship";
+			shipsize=4;
+		}
+		else if(ship==2){
+			shipname="Cruiser";
+			shipsize=3;
+		}
+		else if(ship==1){
+			shipname="Submarine";
+			shipsize=3;
+		}
+		else if(ship==0){
+			shipname="Destroyer";
+			shipsize=2;
+		}
+
+		char x, y, dir;
+		cout << "\n\n" << player1 << " add a " << shipname << " of size: " << shipsize << '\n';
+
+		//x
+		cout << "Enter the x coordinate (A-H): ";
+		x=getche();
+		while(int(x)<65 or int(x)>72){
+			eraseline();
+			cout << "Enter the x coordinate (A-H): ";
+			x=getche();
+		}
+		//y
+		cout << "\nEnter the y coordinate (1-8): ";
+		y=getche();
+		while(int(y)<49 or int(y)>56 or (map1[int(y)-49][int(x)-65]=='S')){
+			eraseline();
+			cout << "Enter the y coordinate (1-8): ";
+			y=getche();
+		}
+
+		//dir
+		cout << "\nEnter the direction (N/E/S/W): ";
+		dir=getche();
+		while(!(dir=='W' or dir=='S' or dir=='N' or dir=='E')){
+			eraseline();
+			cout << "Enter the direction (N/E/S/W): ";
+			dir=getche();
+		}
+
+		setship(shipsize, x, y, dir, map1);
+	}
+
+
+	//player2 adding
+	ship=5;
+	while(ship--){
+		system ("cls");
+
+		if(ship<4){
+			printmap(map2, 1);
+		}
+		else{
+			shiplist();
+			cout << "\n\n";
+		}
+
+		if(ship==4){
+			shipname="Carrier";
+			shipsize=5;
+		}
+		else if(ship==3){
+			shipname="Battleship";
+			shipsize=4;
+		}
+		else if(ship==2){
+			shipname="Cruiser";
+			shipsize=3;
+		}
+		else if(ship==1){
+			shipname="Submarine";
+			shipsize=3;
+		}
+		else if(ship==0){
+			shipname="Destroyer";
+			shipsize=2;
+		}
+
+
+		char x, y, dir;
+		cout << "\n\n" << player2 << " add a " << shipname << " of size: " << shipsize << '\n';
+
+		//x
+		cout << "Enter the x coordinate (A-H): ";
+		x=getche();
+		while(int(x)<65 or int(x)>72){
+			eraseline();
+			cout << "Enter the x coordinate (A-H): ";
+			x=getche();
+		}
+		//y
+		cout << "\nEnter the y coordinate (1-8): ";
+		y=getche();
+		while(int(y)<49 or int(y)>56 or (map2[int(y)-49][int(x)-65]=='S')){
+			eraseline();
+			cout << "Enter the y coordinate (1-8): ";
+			y=getche();
+		}
+
+		//dir
+		cout << "\nEnter the direction (N/E/S/W): ";
+		dir=getche();
+		while(!(dir=='W' or dir=='S' or dir=='N' or dir=='E')){
+			eraseline();
+			cout << "Enter the direction (N/E/S/W): ";
+			dir=getche();
+		}
+
+		setship(shipsize, x, y, dir, map2);
+	}
+
+	system ("cls");
+
+	//gamestart
+	int HP1=17;
+	int HP2=17;
+	int turn=1;
+	char bomb;
+	int nb1=3;
+	int nb2=3;
+
+	//mode
+	switch(mode){
+		case 1://no bomb, easy
+			while(!(turn%2==1 and (HP1==0 or HP2==0))){
+				system ("cls");
+				cout << "Turn: " << turn << "\n\n";
+				int wrong=1;
+
+				if(turn%2==1){
+					printmap(map2, 2);
+					cout << player1 << " enter coordinates to fire.\n";
+					cout << "---------------------\n";
+
+					player1enter:
+					char x, y;
+					//x
+					cout << "Enter the x coordinate (A-H): ";
+					x=getche();
+					while(int(x)<65 or int(x)>72){
+						eraseline();
+						cout << "Enter the x coordinate (A-H): ";
+						x=getche();
+					}
+					//y
+					cout << "\nEnter the y coordinate (1-8): ";
+					y=getche();
+					while(int(y)<49 or int(y)>56){
+						eraseline();
+						cout << "Enter the y coordinate (1-8): ";
+						y=getche();
+					}
+					int xfire=int(x)-65;
+					int yfire=int(y)-49;
+
+					if(map2[yfire][xfire]=='S'){
+						cout << "\nIt's a hit!\n";
+						cout << "Press enter to continue!";
+						map2[yfire][xfire]='H';
+						HP2--;
+						cin.ignore();
+						if(turn==1){
+							cin.ignore();
+						}
+					}
+					else if(map2[yfire][xfire]=='H' or map2[yfire][xfire]=='M'){
+						if(wrong==1){
+							wrong--;
+							cout << "\nCannot input same coordinates once again. Please try again.\n\n";
+							goto player1enter;
+						}
+						else{
+							wrong++;
+							system ("cls");
+							cout << "Turn " << turn << ":\n\n";
+							printmap(map2, 2);
+							cout << player1 << " enter coordinates to fire.\n";
+							cout << "---------------------\n";
+							cout << "Cannot input same coordinates once again. Please try again.\n\n";
+							goto player1enter;
+						}
+					}
+					else{
+						cout << "\nIt's a miss!\n";
+						cout << "Press enter to continue!";
+						map2[yfire][xfire]='M';
+						cin.ignore();
+					}
+				}
+				else{
+					printmap(map1, 2);
+					cout << player2 << " enter coordinates to fire.\n";
+					cout << "---------------------\n";
+
+					player2enter:
+					char x, y;
+					//x
+					cout << "Enter the x coordinate (A-H): ";
+					x=getche();
+					while(int(x)<65 or int(x)>72){
+						eraseline();
+						cout << "Enter the x coordinate (A-H): ";
+						x=getche();
+					}
+					//y
+					cout << "\nEnter the y coordinate (1-8): ";
+					y=getche();
+					while(int(y)<49 or int(y)>56){
+						eraseline();
+						cout << "Enter the y coordinate (1-8): ";
+						y=getche();
+					}
+					int xfire=int(x)-65;
+					int yfire=int(y)-49;
+
+					if(map1[yfire][xfire]=='S'){
+						cout << "\nIt's a hit!\n";
+						cout << "Press enter to continue!";
+						map1[yfire][xfire]='H';
+						HP1--;
+						cin.ignore();
+					}
+					else if(map1[yfire][xfire]=='H' or map1[yfire][xfire]=='M'){
+						if(wrong==1){
+							wrong--;
+							cout << "\nCannot input same coordinates once again. Please try again.\n\n";
+							goto player2enter;
+						}
+						else{
+							wrong++;
+							system ("cls");
+							cout << "Turn " << turn << ":\n\n";
+							printmap(map1, 2);
+							cout << player2 << " enter coordinates to fire.\n";
+							cout << "---------------------\n";
+							cout << "Cannot input same coordinates once again. Please try again.\n\n";
+							goto player2enter;
+						}
+					}
+					else{
+						cout << "\nIt's a miss!\n";
+						cout << "Press enter to continue!";
+						map1[yfire][xfire]='M';
+						cin.ignore();
+					}
+				}
+
+				turn++;
+			}
+
+			break;
+
+		case 2://no bomb, hard
+			while(!(turn%2==1 and (HP1==0 or HP2==0))){
+				system ("cls");
+				cout << "Turn: " << turn << "\n\n";
+				int wrong=1;
+
+				if(turn%2==1){
+					printmap(map2, 3);
+					cout << player1 << " enter coordinates to fire.\n";
+					cout << "---------------------\n";
+
+					player1enter2:
+					char x, y;
+					//x
+					cout << "Enter the x coordinate (A-H): ";
+					x=getche();
+					while(int(x)<65 or int(x)>72){
+						eraseline();
+						cout << "Enter the x coordinate (A-H): ";
+						x=getche();
+					}
+					//y
+					cout << "\nEnter the y coordinate (1-8): ";
+					y=getche();
+					while(int(y)<49 or int(y)>56){
+						eraseline();
+						cout << "Enter the y coordinate (1-8): ";
+						y=getche();
+					}
+					int xfire=int(x)-65;
+					int yfire=int(y)-49;
+
+					if(map2[yfire][xfire]=='S'){
+						cout << "\nIt's a hit!\n";
+						cout << "Press enter to continue!";
+						map2[yfire][xfire]='H';
+						HP2--;
+						cin.ignore();
+						if(turn==1){
+							cin.ignore();
+						}
+					}
+					else if(map2[yfire][xfire]=='H'){
+						if(wrong==1){
+							wrong--;
+							cout << "\nCannot hit the same ship once again. Please try again.\n\n";
+							goto player1enter2;
+						}
+						else{
+							wrong++;
+							system ("cls");
+							cout << "Turn " << turn << ":\n\n";
+							printmap(map2, 3);
+							cout << player1 << " enter coordinates to fire.\n";
+							cout << "---------------------\n";
+							cout << "Cannot hit the same ship once again. Please try again.\n\n";
+							goto player1enter2;
+						}
+					}
+					else{
+						cout << "\nIt's a miss!\n";
+						cout << "Press enter to continue!";
+						map2[yfire][xfire]='M';
+						cin.ignore();
+					}
+				}
+				else{
+					printmap(map1, 3);
+					cout << player2 << " enter coordinates to fire.\n";
+					cout << "---------------------\n";
+
+					player2enter2:
+					char x, y;
+					//x
+					cout << "Enter the x coordinate (A-H): ";
+					x=getche();
+					while(int(x)<65 or int(x)>72){
+						eraseline();
+						cout << "Enter the x coordinate (A-H): ";
+						x=getche();
+					}
+					//y
+					cout << "\nEnter the y coordinate (1-8): ";
+					y=getche();
+					while(int(y)<49 or int(y)>56){
+						eraseline();
+						cout << "Enter the y coordinate (1-8): ";
+						y=getche();
+					}
+					int xfire=int(x)-65;
+					int yfire=int(y)-49;
+
+					if(map1[yfire][xfire]=='S'){
+						cout << "\nIt's a hit!\n";
+						cout << "Press enter to continue!";
+						map1[yfire][xfire]='H';
+						HP1--;
+						cin.ignore();
+					}
+					else if(map1[yfire][xfire]=='H'){
+						if(wrong==1){
+							wrong--;
+							cout << "\nCannot hit the same ship once again. Please try again.\n\n";
+							goto player2enter2;
+						}
+						else{
+							wrong++;
+							system ("cls");
+							cout << "Turn " << turn << ":\n\n";
+							printmap(map1, 2);
+							cout << player2 << " enter coordinates to fire.\n";
+							cout << "---------------------\n";
+							cout << "Cannot hit the same ship once again. Please try again.\n\n";
+							goto player2enter2;
+						}
+					}
+					else{
+						cout << "\nIt's a miss!\n";
+						cout << "Press enter to continue!";
+						map1[yfire][xfire]='M';
+						cin.ignore();
+					}
+				}
+
+				turn++;
+			}
+
+			break;
+
+		case 3://bomb, easy
+			while(!(turn%2==1 and (HP1==0 or HP2==0))){
+				system ("cls");
+				cout << "Turn: " << turn << "\n\n";
+				int wrong=1;
+
+				if(turn%2==1){
+					printmap(map2, 2);
+					cout << player1 << " enter coordinates to fire.\n";
+					cout << "---------------------\n";
+
+					player1enter3:
+					char x, y;
+
+					if(nb1>0){
+						bombcheck13:
+						cout << "Use bomb or not(y/n): ";
+						bomb=getche();;
+					}
+					else{
+						bomb='n';
+					}
+
+					if(bomb=='y' or bomb=='Y'){
+						cout << "\nHint: The coordinate you enter will be the upper left of the 2*2 explosion";
+						nb1--;
+						//x
+						cout << "\nEnter the x coordinate (A-H): ";
+						x=getche();
+						while(int(x)<65 or int(x)>71){
+							eraseline();
+							cout << "Enter the x coordinate (A-H): ";
+							x=getche();
+						}
+						//y
+						cout << "\nEnter the y coordinate (1-8): ";
+						y=getche();
+						while(int(y)<49 or int(y)>55){
+							eraseline();
+							cout << "Enter the y coordinate (1-8): ";
+							y=getche();
+						}
+						int xfire=int(x)-65;
+						int yfire=int(y)-49;
+
+						int hitcount=0;
+						for(int i=0;i<2;i++){
+							for(int j=0;j<2;j++){
+								if(map2[yfire+i][xfire+j]=='S'){
+									hitcount++;
+									map2[yfire+i][xfire+j]='H';
+									HP2--;
+								}
+								else if(map2[yfire+i][xfire+j]=='H' or map2[yfire+i][xfire+j]=='M'){
+
+								}
+								else{
+									map2[yfire+i][xfire+j]='M';
+								}
+
+							}
+						}
+
+						system ("cls");//bomb effect
+						printmap(map2, 2);
+						cout << "There's " << hitcount << " hits\n";
+						cout << "Press enter to continue!";
+						cin.ignore();
+						if(turn==1){
+							cin.ignore();
+						}
+
+					}
+					else if(bomb=='n' or bomb=='N'){
+						//x
+						cout << "\nEnter the x coordinate (A-H): ";
+						x=getche();
+						while(int(x)<65 or int(x)>72){
+							eraseline();
+							cout << "Enter the x coordinate (A-H): ";
+							x=getche();
+						}
+						//y
+						cout << "\nEnter the y coordinate (1-8): ";
+						y=getche();
+						while(int(y)<49 or int(y)>56){
+							eraseline();
+							cout << "Enter the y coordinate (1-8): ";
+							y=getche();
+						}
+						int xfire=int(x)-65;
+						int yfire=int(y)-49;
+
+						if(map2[yfire][xfire]=='S'){
+							cout << "\nIt's a hit!\n";
+							cout << "Press enter to continue!";
+							map2[yfire][xfire]='H';
+							HP2--;
+							cin.ignore();
+							if(turn==1){
+								cin.ignore();
+							}
+						}
+						else if(map2[yfire][xfire]=='H' or map2[yfire][xfire]=='M'){
+							if(wrong==1){
+								wrong--;
+								cout << "\nCannot input same coordinates once again. Please try again.\n\n";
+								goto player1enter3;
+							}
+							else{
+								wrong++;
+								system ("cls");
+								cout << "Turn " << turn << ":\n\n";
+								printmap(map2, 2);
+								cout << player1 << " enter coordinates to fire.\n";
+								cout << "---------------------\n";
+								cout << "Cannot input same coordinates once again. Please try again.\n\n";
+								goto player1enter3;
+							}
+						}
+						else{
+							cout << "\nIt's a miss!\n";
+							cout << "Press enter to continue!";
+							map2[yfire][xfire]='M';
+							cin.ignore();
+						}
+					}
+					else{
+						cout << '\n';
+						goto bombcheck13;
+					}
+
+
+				}
+				else{
+					printmap(map1, 2);
+					cout << player2 << " enter coordinates to fire.\n";
+					cout << "---------------------\n";
+
+					player2enter3:
+					char x, y;
+					if(nb2>0){
+						bombcheck23:
+						cout << "Use bomb or not(y/n): ";
+						bomb=getche();
+					}
+					else{
+						bomb='n';
+					}
+
+					if(bomb=='y' or bomb=='Y'){
+						cout << "\nHint: The coordinate you enter will be the upper left of the 2*2 explosion";
+						nb2--;
+						//x
+						cout << "\nEnter the x coordinate (A-H): ";
+						x=getche();
+						while(int(x)<65 or int(x)>71){
+							eraseline();
+							cout << "Enter the x coordinate (A-H): ";
+							x=getche();
+						}
+						//y
+						cout << "\nEnter the y coordinate (1-8): ";
+						y=getche();
+						while(int(y)<49 or int(y)>55){
+							eraseline();
+							cout << "Enter the y coordinate (1-8): ";
+							y=getche();
+						}
+						int xfire=int(x)-65;
+						int yfire=int(y)-49;
+
+						int hitcount=0;
+						for(int i=0;i<2;i++){
+							for(int j=0;j<2;j++){
+								if(map1[yfire+i][xfire+j]=='S'){
+									hitcount++;
+									map1[yfire+i][xfire+j]='H';
+									HP1--;
+									if(turn==1){
+										cin.ignore();
+									}
+								}
+								else if(map1[yfire+i][xfire+j]=='H' or map1[yfire+i][xfire+j]=='M'){
+
+								}
+								else{
+									map1[yfire+i][xfire+j]='M';
+								}
+
+							}
+						}
+
+						system ("cls");//bomb effect
+						printmap(map1, 2);
+						cout << "There's " << hitcount << " hits\n";
+						cout << "Press enter to continue!";
+						cin.ignore();
+
+					}
+					else if(bomb=='n' or bomb=='N'){
+						//x
+						cout << "\nEnter the x coordinate (A-H): ";
+						x=getche();
+						while(int(x)<65 or int(x)>72){
+							eraseline();
+							cout << "Enter the x coordinate (A-H): ";
+							x=getche();
+						}
+						//y
+						cout << "\nEnter the y coordinate (1-8): ";
+						y=getche();
+						while(int(y)<49 or int(y)>56){
+							eraseline();
+							cout << "Enter the y coordinate (1-8): ";
+							y=getche();
+						}
+						int xfire=int(x)-65;
+						int yfire=int(y)-49;
+
+						if(map1[yfire][xfire]=='S'){
+							cout << "\nIt's a hit!\n";
+							cout << "Press enter to continue!";
+							map1[yfire][xfire]='H';
+							HP1--;
+							cin.ignore();
+							if(turn==1){
+								cin.ignore();
+							}
+						}
+						else if(map1[yfire][xfire]=='H' or map1[yfire][xfire]=='M'){
+							if(wrong==1){
+								wrong--;
+								cout << "\nCannot input same coordinates once again. Please try again.\n\n";
+								goto player2enter3;
+							}
+							else{
+								wrong++;
+								system ("cls");
+								cout << "Turn " << turn << ":\n\n";
+								printmap(map1, 2);
+								cout << player2 << " enter coordinates to fire.\n";
+								cout << "---------------------\n";
+								cout << "Cannot input same coordinates once again. Please try again.\n\n";
+								goto player2enter3;
+							}
+						}
+						else{
+							cout << "\nIt's a miss!\n";
+							cout << "Press enter to continue!";
+							map1[yfire][xfire]='M';
+							cin.ignore();
+						}
+					}
+					else{
+						cout << '\n';
+						goto bombcheck23;
+					}
+				}
+
+				turn++;
+			}
+
+			break;
+
+		case 4://bomb hard
+			while(!(turn%2==1 and (HP1==0 or HP2==0))){
+				system ("cls");
+				cout << "Turn: " << turn << "\n\n";
+				int wrong=1;
+
+				if(turn%2==1){
+					printmap(map2, 3);
+					cout << player1 << " enter coordinates to fire.\n";
+					cout << "---------------------\n";
+
+					player1enter4:
+					char x, y;
+
+					if(nb1>0){
+						bombcheck14:
+						cout << "Use bomb or not(y/n): ";
+						bomb=getche();;
+					}
+					else{
+						bomb='n';
+					}
+
+					if(bomb=='y' or bomb=='Y'){
+						cout << "\nHint: The coordinate you enter will be the upper left of the 2*2 explosion";
+						nb1--;
+						//x
+						cout << "\nEnter the x coordinate (A-H): ";
+						x=getche();
+						while(int(x)<65 or int(x)>71){
+							eraseline();
+							cout << "Enter the x coordinate (A-H): ";
+							x=getche();
+						}
+						//y
+						cout << "\nEnter the y coordinate (1-8): ";
+						y=getche();
+						while(int(y)<49 or int(y)>55){
+							eraseline();
+							cout << "Enter the y coordinate (1-8): ";
+							y=getche();
+						}
+						int xfire=int(x)-65;
+						int yfire=int(y)-49;
+
+						int hitcount=0;
+						for(int i=0;i<2;i++){
+							for(int j=0;j<2;j++){
+								if(map2[yfire+i][xfire+j]=='S'){
+									hitcount++;
+									map2[yfire+i][xfire+j]='H';
+									HP2--;
+								}
+								else if(map2[yfire+i][xfire+j]=='H' or map2[yfire+i][xfire+j]=='M'){
+
+								}
+								else{
+									map2[yfire+i][xfire+j]='M';
+								}
+
+							}
+						}
+
+						system ("cls");//bomb effect
+						printmap(map2, 3);
+						cout << "There's " << hitcount << " hits\n";
+						cout << "Press enter to continue!";
+						cin.ignore();
+						if(turn==1){
+							cin.ignore();
+						}
+
+					}
+					else if(bomb=='n' or bomb=='N'){
+						//x
+						cout << "\nEnter the x coordinate (A-H): ";
+						x=getche();
+						while(int(x)<65 or int(x)>72){
+							eraseline();
+							cout << "Enter the x coordinate (A-H): ";
+							x=getche();
+						}
+						//y
+						cout << "\nEnter the y coordinate (1-8): ";
+						y=getche();
+						while(int(y)<49 or int(y)>56){
+							eraseline();
+							cout << "Enter the y coordinate (1-8): ";
+							y=getche();
+						}
+						int xfire=int(x)-65;
+						int yfire=int(y)-49;
+
+						if(map2[yfire][xfire]=='S'){
+							cout << "\nIt's a hit!\n";
+							cout << "Press enter to continue!";
+							map2[yfire][xfire]='H';
+							HP2--;
+							cin.ignore();
+							if(turn==1){
+								cin.ignore();
+							}
+						}
+						else if(map2[yfire][xfire]=='H'){
+							if(wrong==1){
+								wrong--;
+								cout << "\nCannot hit the same ship once again. Please try again.\n\n";
+								goto player1enter4;
+							}
+							else{
+								wrong++;
+								system ("cls");
+								cout << "Turn " << turn << ":\n\n";
+								printmap(map2, 3);
+								cout << player1 << " enter coordinates to fire.\n";
+								cout << "---------------------\n";
+								cout << "Cannot hit the same ship once again. Please try again.\n\n";
+								goto player1enter4;
+							}
+						}
+						else{
+							cout << "\nIt's a miss!\n";
+							cout << "Press enter to continue!";
+							map2[yfire][xfire]='M';
+							cin.ignore();
+						}
+					}
+					else{
+						cout << '\n';
+						goto bombcheck14;
+					}
+
+
+				}
+				else{
+					printmap(map1, 3);
+					cout << player2 << " enter coordinates to fire.\n";
+					cout << "---------------------\n";
+
+					player2enter4:
+					char x, y;
+					if(nb2>0){
+						bombcheck24:
+						cout << "Use bomb or not(y/n): ";
+						bomb=getche();
+					}
+					else{
+						bomb='n';
+					}
+
+					if(bomb=='y' or bomb=='Y'){
+						cout << "\nHint: The coordinate you enter will be the upper left of the 2*2 explosion";
+						nb2--;
+						//x
+						cout << "\nEnter the x coordinate (A-H): ";
+						x=getche();
+						while(int(x)<65 or int(x)>71){
+							eraseline();
+							cout << "Enter the x coordinate (A-H): ";
+							x=getche();
+						}
+						//y
+						cout << "\nEnter the y coordinate (1-8): ";
+						y=getche();
+						while(int(y)<49 or int(y)>55){
+							eraseline();
+							cout << "Enter the y coordinate (1-8): ";
+							y=getche();
+						}
+						int xfire=int(x)-65;
+						int yfire=int(y)-49;
+
+						int hitcount=0;
+						for(int i=0;i<2;i++){
+							for(int j=0;j<2;j++){
+								if(map1[yfire+i][xfire+j]=='S'){
+									hitcount++;
+									map1[yfire+i][xfire+j]='H';
+									HP1--;
+									if(turn==1){
+										cin.ignore();
+									}
+								}
+								else if(map1[yfire+i][xfire+j]=='H' or map1[yfire+i][xfire+j]=='M'){
+
+								}
+								else{
+									map1[yfire+i][xfire+j]='M';
+								}
+
+							}
+						}
+
+						system ("cls");//bomb effect
+						printmap(map1, 3);
+						cout << "There's " << hitcount << " hits\n";
+						cout << "Press enter to continue!";
+						cin.ignore();
+
+					}
+					else if(bomb=='n' or bomb=='N'){
+						//x
+						cout << "\nEnter the x coordinate (A-H): ";
+						x=getche();
+						while(int(x)<65 or int(x)>72){
+							eraseline();
+							cout << "Enter the x coordinate (A-H): ";
+							x=getche();
+						}
+						//y
+						cout << "\nEnter the y coordinate (1-8): ";
+						y=getche();
+						while(int(y)<49 or int(y)>56){
+							eraseline();
+							cout << "Enter the y coordinate (1-8): ";
+							y=getche();
+						}
+						int xfire=int(x)-65;
+						int yfire=int(y)-49;
+
+						if(map1[yfire][xfire]=='S'){
+							cout << "\nIt's a hit!\n";
+							cout << "Press enter to continue!";
+							map1[yfire][xfire]='H';
+							HP1--;
+							cin.ignore();
+							if(turn==1){
+								cin.ignore();
+							}
+						}
+						else if(map1[yfire][xfire]=='H'){
+							if(wrong==1){
+								wrong--;
+								cout << "\nCannot hit the same ship once again. Please try again.\n\n";
+								goto player2enter4;
+							}
+							else{
+								wrong++;
+								system ("cls");
+								cout << "Turn " << turn << ":\n\n";
+								printmap(map1, 3);
+								cout << player2 << " enter coordinates to fire.\n";
+								cout << "---------------------\n";
+								cout << "Cannot hit the same ship once again. Please try again.\n\n";
+								goto player2enter4;
+							}
+						}
+						else{
+							cout << "\nIt's a miss!\n";
+							cout << "Press enter to continue!";
+							map1[yfire][xfire]='M';
+							cin.ignore();
+						}
+					}
+					else{
+						cout << '\n';
+						goto bombcheck24;
+					}
+				}
+
+				turn++;
+			}
+
+			break;
+	}
+
+	//someone win
+	system ("cls");
+	if(HP1==0 and HP2==0){
+		tiepage();
+	}
+	else if(HP1==0){
+		victorypage(player2);
+	}
+	else{
+		victorypage(player1);
+	}
+
+	system ("cls");
+	gotoxy(0,0);
+	for(int i=0;i<8;i++){
+		cout << '\n';
+	}
+
+	cout << "                          enter 1 to play again\n";
+	cout << "                          enter any other to quit\n";
+	cout << "                          Do you wanna play a game?  : ";
+	char c;
+	cin >> c;
+	if(int(c)==49){
+		system ("cls");
+		goto playagain;
+	}
+	else{
+		for(int i=0;i<8;i++){
+			cout << '\n';
+		}
+		return 0;
+	}
+	return 0;
+}
+
+int beginning(){
+    CONSOLE_CURSOR_INFO CursorInfo;
+    GetConsoleCursorInfo(handle, &CursorInfo);
+    CursorInfo.bVisible = false;
+    SetConsoleCursorInfo(handle, &CursorInfo);
+
+    char a[2][70]={0};
+    int countt=0,time=0,round=1;
+
+    //利用陣列排出圖形
+
+    //利用無線迴圈隨著時間做出動畫
+
+
+    while (1)
+    {
+        cout << setw(2)<<left;
+
+        cout << "        *                          *                            *\n";
+        cout << "      ****#                    #*******#                     #****\n";
+        cout << "         ***#              #******K&L******#               #***\n";
+        cout << "  **************#    #****************************#    #**************\n";
+        cout << "************************************************************************\n";
+        cout << " ----------------------------------------------------------------------\n";
+
+        for (int i=0;i<2;i++)
+        {
+            cout << ' ';
+            for (int j=0;j<70;j++)
+            {
+                cout <<a[i][j];
+            }
+            cout << endl;
+        }
+        cout << " ----------------------------------------------------------------------\n";
+        cout << "************************************************************************\n";
+        cout << "  **************#    #****************************#    #**************\n";
+        cout << "         ***#              #***************#               #***\n";
+        cout << "      ****#                    #*******#                     #****\n";
+        cout << "        *                          *                            *\n";
+
+        Beep(523,100);
+
+        //利用蜂鳴器將老式遊戲音效還原
+
+
+
+        Sleep (50);
+        system ("cls");
+
+        if (time <120)
+        {
+            a[0][countt]= 'e';
+            a[0][countt-1]='k';
+            a[0][countt-2]='i';
+            a[0][countt-3]='l';
+            a[0][countt-4]=' ';
+            a[0][countt-5]='e';
+            a[0][countt-6]='b';
+            a[0][countt-7]=' ';
+            a[0][countt-8]='d';
+            a[0][countt-9]='l';
+            a[0][countt-10]='u';
+            a[0][countt-11]='o';
+            a[0][countt-12]='w';
+            a[0][countt-13]=' ';
+            a[0][countt-14]='d';
+            a[0][countt-15]='l';
+            a[0][countt-16]='r';
+            a[0][countt-17]='o';
+            a[0][countt-18]='w';
+            a[0][countt-19]=' ';
+            a[0][countt-20]='e';
+            a[0][countt-21]='h';
+            a[0][countt-22]='t';
+            a[0][countt-23]=' ';
+            a[0][countt-24]='t';
+            a[0][countt-25]='a';
+            a[0][countt-26]='h';
+            a[0][countt-27]='w';
+            a[0][countt-28]=' ';
+            a[0][countt-29]='r';
+            a[0][countt-30]='e';
+            a[0][countt-31]='d';
+            a[0][countt-32]='n';
+            a[0][countt-33]='o';
+            a[0][countt-34]='w';
+            a[0][countt-35]=' ';
+            a[0][countt-36]='r';
+            a[0][countt-37]='e';
+            a[0][countt-38]='v';
+            a[0][countt-39]='e';
+            a[0][countt-40]=' ';
+            a[0][countt-41]='u';
+            a[0][countt-42]='o';
+            a[0][countt-43]='y';
+            a[0][countt-44]=' ';
+            a[0][countt-45]='e';
+            a[0][countt-46]='v';
+            a[0][countt-47]='a';
+            a[0][countt-48]='H';
+            a[0][countt-49]=' ';
+
+            for (int r=0;r<70;r++)
+            {
+                a[1][r]=' ';
+            }
+        }
+        else if (time<121)
+        {
+
+            for (int i=0;i<2;i++)
+            {
+                for (int j=0;j<70;j++)
+                {
+                    a[i][j]=' ';
+                }
+            }
+
+            countt=0;
+        }
+        else if (time <256)
+        {
+            a[0][countt]= 't';
+            a[0][countt-1]='r';
+            a[0][countt-2]='i';
+            a[0][countt-3]='d';
+            a[0][countt-4]=' ';
+            a[0][countt-5]='e';
+            a[0][countt-6]='h';
+            a[0][countt-7]='t';
+            a[0][countt-8]=' ';
+            a[0][countt-9]='w';
+            a[0][countt-10]='o';
+            a[0][countt-11]='l';
+            a[0][countt-12]='e';
+            a[0][countt-13]='b';
+            a[0][countt-14]=' ';
+            a[0][countt-15]='s';
+            a[0][countt-16]='i';
+            a[0][countt-17]=' ';
+            a[0][countt-18]='r';
+            a[0][countt-19]='e';
+            a[0][countt-20]='t';
+            a[0][countt-21]='l';
+            a[0][countt-22]='e';
+            a[0][countt-23]='h';
+            a[0][countt-24]='s';
+            a[0][countt-25]=' ';
+            a[0][countt-26]='y';
+            a[0][countt-27]='l';
+            a[0][countt-28]='n';
+            a[0][countt-29]='o';
+            a[0][countt-30]=' ';
+            a[0][countt-31]='e';
+            a[0][countt-32]='h';
+            a[0][countt-33]='t';
+            a[0][countt-34]=' ';
+            a[0][countt-35]='d';
+            a[0][countt-36]='n';
+            a[0][countt-37]='a';
+            a[0][countt-38]=' ';
+            a[0][countt-39]='e';
+            a[0][countt-40]='r';
+            a[0][countt-41]='e';
+            a[0][countt-42]='h';
+            a[0][countt-43]='w';
+            a[0][countt-44]='y';
+            a[0][countt-45]='r';
+            a[0][countt-46]='e';
+            a[0][countt-47]='v';
+            a[0][countt-48]='e';
+            a[0][countt-49]=' ';
+            a[0][countt-50]='e';
+            a[0][countt-51]='r';
+            a[0][countt-52]='a';
+            a[0][countt-53]=' ';
+            a[0][countt-54]='s';
+            a[0][countt-55]='e';
+            a[0][countt-56]='t';
+            a[0][countt-57]='a';
+            a[0][countt-58]='r';
+            a[0][countt-60]='i';
+            a[0][countt-61]='p';
+            a[0][countt-62]=' ';
+            a[0][countt-63]='f';
+            a[0][countt-64]='I';
+            a[0][countt-65]=' ';
+
+            for (int r=0;r<70;r++)
+            {
+                a[1][r]=' ';
+            }
+
+        }
+        else if(time <257)
+        {
+            for (int i=0;i<2;i++)
+            {
+                for (int j=0;j<70;j++)
+                {
+                    a[i][j]=' ';
+                }
+            }
+
+            countt=0;
+        }
+        else if (time <300)
+        {
+
+            a[0][countt]= 's';
+            a[0][countt-1]='e';
+            a[0][countt-2]='m';
+            a[0][countt-3]='o';
+            a[0][countt-4]='c';
+            a[0][countt-5]=' ';
+            a[0][countt-6]='t';
+            a[0][countt-7]='i';
+            a[0][countt-8]=' ';
+            a[0][countt-9]='e';
+            a[0][countt-10]='r';
+            a[0][countt-11]='e';
+            a[0][countt-12]='h';
+            a[0][countt-13]=' ';
+            a[0][countt-14]='.';
+            a[0][countt-15]='.';
+            a[0][countt-16]='.';
+            a[0][countt-17]='l';
+            a[0][countt-18]='l';
+            a[0][countt-19]='e';
+            a[0][countt-20]='W';
+            a[0][countt-21]=' ';
+
+            for (int r=0;r<70;r++)
+            {
+                a[1][r]=' ';
+            }
+        }
+        else if(time <306)
+        {
+            for (int i=0;i<2;i++)
+            {
+                for (int j=0;j<70;j++)
+                {
+                    a[i][j]=' ';
+                }
+            }
+
+
+            Beep(880,100);
+
+            for (int k=0;k<70;k++)
+            {
+                if ((k-4)%10==0)
+                {
+                    a[0][k]='E';
+                }
+                if ((k-4)%10==1)
+                {
+                    a[0][k]='r';
+                }
+                if ((k-4)%10==2)
+                {
+                    a[0][k]='r';
+                }
+                if ((k-4)%10==3)
+                {
+                    a[0][k]='o';
+                }
+                if ((k-4)%10==4)
+                {
+                    a[0][k]='r';
+                }
+                if ((k-4)%10==5)
+                {
+                    a[1][k]='E';
+                }
+                if ((k-4)%10==6)
+                {
+                    a[1][k]='r';
+                }
+                if ((k-4)%10==7)
+                {
+                    a[1][k]='r';
+                }
+                if ((k-4)%10==8)
+                {
+                    a[1][k]='o';
+                }
+                if ((k-4)%10==9)
+                {
+                    a[1][k]='r';
+                }
+
+            }
+
+
+        }
+        else if (time <307)
+        {
+            for (int n=0;n<2;n++)
+            {
+                for (int m=0;m<70;m++)
+                {
+                    a[n][m]=' ';
+                }
+            }
+        }
+        else if (time >=307)
+        {
+            a[0][0]='<';
+            a[0][1]='<';
+            a[1][0]='<';
+            a[1][1]='<';
+            a[0][69]='>';
+            a[0][68]='>';
+            a[1][69]='>';
+            a[1][68]='>';
+
+            a[0][27]='K';
+            a[0][28]='&';
+            a[0][29]='L';
+            a[0][30]=' ';
+            a[0][31]='B';
+            a[0][32]='a';
+            a[0][33]='t';
+            a[0][34]='t';
+            a[0][35]='l';
+            a[0][36]='e';
+            a[0][37]='s';
+            a[0][38]='h';
+            a[0][39]='i';
+            a[0][40]='p';
+            a[0][41]='s';
+
+            a[1][30]='M';
+            a[1][31]='a';
+            a[1][32]='i';
+            a[1][33]='n';
+            a[1][34]=' ';
+            a[1][35]='m';
+            a[1][36]='e';
+            a[1][37]='n';
+            a[1][38]='u';
+
+            cout << setw(2)<<left;
+            cout << "----------------------------------------------------------------------\n";
+
+            for (int i=0;i<2;i++)
+            {
+                for (int j=0;j<70;j++)
+                {
+                    cout <<a[i][j];
+                }
+                    cout << endl;
+            }
+            cout << "----------------------------------------------------------------------\n";
+
+            cout << endl;
+
+            cout << "\t\t\t"<<"    1. Start Game\n";
+
+            cout << "\t\t\t"<<"    2. Exit Game\n";
+
+            CONSOLE_CURSOR_INFO CursorInfo;
+            GetConsoleCursorInfo(handle, &CursorInfo);
+            CursorInfo.bVisible = true;
+            SetConsoleCursorInfo(handle, &CursorInfo);
+
+
+            cout <<endl<< "Choose your destiny.\n";
+			int choose;
+            cout << "Choose : ";
+			cin >> choose;
+            return choose;
+        }
+
+        time ++;
+
+        countt++;
+    }
+
+}
+
+void shiplist(){
+    char a[2][70]={0};
+    char b[70]={0};
+
+
+
+    for (int m=0;m<2;m++)
+    {
+        for (int n=0;n<70;n++)
+        {
+            a[m][n]='~';
+        }
+    }
+        a[0][28]='A';
+        a[0][29]='d';
+        a[0][30]='d';
+        a[0][31]=' ';
+        a[0][32]='S';
+        a[0][33]='h';
+        a[0][34]='i';
+        a[0][35]='p';
+        a[0][36]='s';
+
+    cout << setw(2)<<left;
+
+cout << "~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~\n";
+
+    for (int i=0;i<2;i++)
+    {
+        for (int j=0;j<70;j++)
+        {
+            cout <<a[i][j];
+        }
+        cout << endl;
+    }
+
+
+    for (int r=0;r<70;r++)
+    {
+        b[r]='=';
+    }
+
+
+    b[11]='N';
+    b[12]='o';
+    b[13]='.';
+
+    b[28]='t';
+    b[29]='y';
+    b[30]='p';
+    b[31]='e';
+    b[32]='s';
+
+    b[50]='l';
+    b[51]='e';
+    b[52]='n';
+    b[53]='g';
+    b[54]='t';
+    b[55]='h';
+
+    for (int r=0;r<70;r++)
+    {
+        cout << b[r];
+    }
+    cout << endl;
+
+    cout << "----------------------------------------------------------------------\n";
+
+    cout << "\t" <<"   1"<<"\t\t"<< "    Carrier"<< "\t\t  "<< "  5"<< endl;
+
+    cout << "\t" <<"   1"<<"\t\t"<< "    Battleship"<< "\t\t  "<< "  4"<< endl;
+
+    cout << "\t" <<"   1"<<"\t\t"<< "    Cruiser"<< "\t\t  "<< "  3"<< endl;
+
+    cout << "\t" <<"   1"<<"\t\t"<< "    Submarine"<< "\t\t  "<< "  3"<< endl;
+
+    cout << "\t" <<"   1"<<"\t\t"<< "    Destroyer"<< "\t\t  "<< "  2"<< endl;
+
+	cout << "----------------------------------------------------------------------\n";
+
+}
+
+void setship(int n, char x1, char y1, char dir, char map[][8]){
+	int x=int(x1)-65;
+	int y=int(y1)-49;
+
+	//up
+	if(dir=='N'){
+		int end=y-n+1;
+		if(end<0){
+			eraseline();
+			cout << "Enter the direction (N/E/S/W): ";
+			dir=getche();
+			setship(n, x1, y1, dir, map);
+		}
+		else{
+			//check if there's already a ship
+			bool overlap=0;
+			for(int i=0;i<n;i++){
+				if(map[y-i][x]=='S'){
+					overlap=1;
+				}
+			}
+
+			if(overlap){
+				eraseline();
+				cout << "Enter the direction (N/E/S/W): ";
+				dir=getche();
+				setship(n, x1, y1, dir, map);
+			}
+			else{
+				for(int i=0;i<n;i++){
+					map[y-i][x]='S';
+				}
+			}
+		}
+
+	}
+
+	//down
+	else if(dir=='S'){
+		int end=y+n-1;
+		if(end>7){
+			eraseline();
+			cout << "Enter the direction (N/E/S/W): ";
+			dir=getche();
+			setship(n, x1, y1, dir, map);
+		}
+		else{
+			//check if there's already a ship
+			bool overlap=0;
+			for(int i=0;i<n;i++){
+				if(map[y+i][x]=='S'){
+					overlap=1;
+				}
+			}
+
+			if(overlap){
+				eraseline();
+				cout << "Enter the direction (N/E/S/W): ";
+				dir=getche();
+				setship(n, x1, y1, dir, map);
+			}
+			else{
+				for(int i=0;i<n;i++){
+					map[y+i][x]='S';
+				}
+			}
+		}
+	}
+
+	//right
+	else if(dir=='E'){
+		int end=x+n-1;
+		if(end>7){
+			eraseline();
+			cout << "Enter the direction (N/E/S/W): ";
+			dir=getche();
+			setship(n, x1, y1, dir, map);
+		}
+		else{
+			//check if there's already a ship
+			bool overlap=0;
+			for(int i=0;i<n;i++){
+				if(map[y][x+i]=='S'){
+					overlap=1;
+				}
+			}
+
+			if(overlap){
+				eraseline();
+				cout << "Enter the direction (N/E/S/W): ";
+				dir=getche();
+				setship(n, x1, y1, dir, map);
+			}
+			else{
+				for(int i=0;i<n;i++){
+					map[y][x+i]='S';
+				}
+			}
+		}
+	}
+
+	//left
+	else if(dir=='W'){
+		int end=x-n+1;
+		if(end<0){
+			eraseline();
+			cout << "Enter the direction (N/E/S/W): ";
+			dir=getche();
+			setship(n, x1, y1, dir, map);
+		}
+		else{
+			//check if there's already a ship
+			bool overlap=0;
+			for(int i=0;i<n;i++){
+				if(map[y][x-i]=='S'){
+					overlap=1;
+				}
+			}
+
+			if(overlap){
+				eraseline();
+				cout << "Enter the direction (N/E/S/W): ";
+				dir=getche();
+				setship(n, x1, y1, dir, map);
+			}
+			else{
+				for(int i=0;i<n;i++){
+					map[y][x-i]='S';
+				}
+			}
+		}
+	}
+
+
+}
+
+void eraseline(){
+	cout << "\r                                                                               \r";
+}
+
+void printmap(char map[][8], int mode){
+	//color
+	HANDLE color = GetStdHandle(STD_OUTPUT_HANDLE);
+
+	if(mode==1){
+		cout << "  | A B C D E F G H\n";
+		cout << "--------------------\n";
+		for(int i=0;i<8;i++){
+			cout << i+1 << " |";
+			for(int j=0;j<8;j++){
+				cout << ' ' << map[i][j];
+			}
+			cout << '\n';
+		}
+		cout << '\n';
+	}
+	else if(mode==2){
+		cout << "  | A B C D E F G H\n";
+		cout << "--------------------\n";
+		for(int i=0;i<8;i++){
+			cout << i+1 << " |";
+			for(int j=0;j<8;j++){
+				if(map[i][j]=='H'){
+					SetConsoleTextAttribute(color, 2 );
+					cout << ' ' << 'H';
+					SetConsoleTextAttribute(color, 15 );
+				}
+				else if(map[i][j]=='M'){
+					SetConsoleTextAttribute(color, 4 );
+					cout << ' ' << 'M';
+					SetConsoleTextAttribute(color, 15 );
+				}
+				else{
+					cout << "  ";
+				}
+			}
+			cout << '\n';
+		}
+		SetConsoleTextAttribute(color, 15 );
+		cout << "\n\n";
+	}
+	else if(mode==3){
+		cout << "  | A B C D E F G H\n";
+		cout << "--------------------\n";
+		for(int i=0;i<8;i++){
+			cout << i+1 << " |";
+			for(int j=0;j<8;j++){
+				if(map[i][j]=='H'){
+					SetConsoleTextAttribute(color, 2 );
+					cout << ' ' << 'H';
+					SetConsoleTextAttribute(color, 15 );
+				}
+				else{
+					cout << "  ";
+				}
+			}
+			cout << '\n';
+		}
+		SetConsoleTextAttribute(color, 15 );
+		cout << "\n\n";
+
+
+	}
+}
+
+void gotoxy(int xpos, int ypos){
+	COORD scrn;
+	HANDLE hOuput = GetStdHandle(STD_OUTPUT_HANDLE);
+	scrn.X = xpos; scrn.Y = ypos;
+	SetConsoleCursorPosition(hOuput,scrn);
+}
+
+void victorypage (string player){
+
+    CONSOLE_CURSOR_INFO CursorInfo;
+    GetConsoleCursorInfo(handle, &CursorInfo);
+    CursorInfo.bVisible = false;
+    SetConsoleCursorInfo(handle, &CursorInfo);
+
+
+    char a[20][56]={0};
+    int t[6],time=0;
+
+    while (1){
+	    for (int m=0;m<20;m++){
+	        for (int n=0;n<56;n++)
+	        {
+	            a[m][n]=' ';
+	        }
+	    }
+
+	    t[1]= rand();
+
+	    t[2]= rand();
+
+	    t[3]= rand();
+
+	    t[4]= rand();
+
+	    t[5]= rand();
+
+
+	    t[0]= rand();
+
+	    for (int i=0;i<6;i++)
+	    {
+	        a[t[i]%20][t[i]%56]='*';
+	        a[t[i]%10][t[i]%28]='*';
+	        a[t[i]%10+8][t[i]%28+27]='*';
+	        a[t[i]%10+2][t[i]%28+24]='*';
+	        a[t[i]%10+8][t[i]%28+2]='*';
+
+	        a[t[i]%5][t[i]%14]='*';
+	        a[t[i]%5][t[i]%14]='*';
+	        a[t[i]%5][t[i]%7]='*';
+	    }
+
+	    for (int i=0;i<10;i++)
+	    {
+	        for (int j=0;j<56;j++)
+	        {
+	            cout <<setw(2)<<a[i][j];
+	        }
+	        cout << endl;
+	    }
+
+	    cout <<"\t\t\t"<<"<<<<  Congratulation "<<player<<" you have won the game.! >>>>\n";
+
+	    for (int i=10;i<20;i++)
+	    {
+	        for (int j=0;j<56;j++)
+	        {
+	            cout <<setw(2)<<a[i][j];
+	        }
+	        cout << endl;
+	    }
+	    cout << setw(102)<< right << "----Made by K&L";
+	    Sleep(550);
+
+
+	    if (time>10)
+	    {
+	        break;
+	    }
+	    system("cls");
+	    time++;
+	}
+}
+
+void tiepage(){
+    CONSOLE_CURSOR_INFO CursorInfo;
+    GetConsoleCursorInfo(handle, &CursorInfo);
+    CursorInfo.bVisible = false;
+    SetConsoleCursorInfo(handle, &CursorInfo);
+
+
+    char a[20][56]={0};
+    int t[6],time=1,ans = 0;
+
+    while (time++)
+    {
+
+
+        for (int m=0;m<20;m++)
+    {
+        for (int n=0;n<56;n++)
+        {
+            a[m][n]=' ';
+        }
+    }
+
+    t[1]= rand();
+
+    t[2]= rand();
+
+    t[3]= rand();
+
+    t[4]= rand();
+
+    t[5]= rand();
+
+
+    t[0]= rand();
+
+    for (int i=0;i<6;i++)
+    {
+        a[t[i]%20][t[i]%56]='#';
+        a[t[i]%10][t[i]%28]='#';
+        a[t[i]%10+8][t[i]%28+27]='#';
+        a[t[i]%10+2][t[i]%28+24]='#';
+        a[t[i]%10+8][t[i]%28+2]='#';
+
+        a[t[i]%5][t[i]%14]='#';
+        a[t[i]%5][t[i]%14]='#';
+        a[t[i]%5][t[i]%7]='#';
+    }
+
+    for (int i=0;i<10;i++)
+    {
+        for (int j=0;j<56;j++)
+        {
+            cout <<setw(2)<<a[i][j];
+        }
+        cout << endl;
+    }
+    if(time<4)
+    {
+
+    }
+    else if (time <5)
+    {
+        cout <<"\t\t\t\t"<<" B\n";
+    }
+    else if(time<6)
+    {
+        cout <<"\t\t\t\t"<<" Bo\n";
+    }
+    else if(time<7)
+    {
+        cout <<"\t\t\t\t"<<" Bot\n";
+    }
+    else if(time<8)
+    {
+        cout <<"\t\t\t\t"<<" Bott\n";
+    }
+    else if(time<9)
+    {
+        cout <<"\t\t\t\t"<<" Bottl\n";
+    }
+    else if(time<10)
+    {
+        cout <<"\t\t\t\t"<<" Bottle\n";
+    }
+    else if(time<11)
+    {
+        cout <<"\t\t\t\t"<<" Bottle \n";
+    }
+    else if(time<12)
+    {
+        cout <<"\t\t\t\t"<<" Bottle +\n";
+    }
+    else if(time<13)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + \n";
+    }
+    else if(time<14)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + h\n";
+    }
+    else if(time<15)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + ha\n";
+    }
+    else if(time<16)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + han\n";
+    }
+    else if(time<17)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + hand\n";
+    }
+    else if(time<18)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + hand \n";
+    }
+    else if(time<19)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + hand =\n";
+    }
+    else if(time<20)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + hand = \n";
+    }
+    else if(time<21)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + hand = T\n";
+    }
+    else if(time<22)
+    {
+        cout <<"\t\t\t\t"<<" Bottle + hand = Ti\n";
+    }
+    else
+    {
+        cout <<"\t\t\t\t"<<" Bottle + hand = Tie \n";
+
+    }
+
+
+    for (int i=10;i<20;i++)
+    {
+        for (int j=0;j<56;j++)
+        {
+            cout <<setw(2)<<a[i][j];
+        }
+        cout << endl;
+    }
+    cout << setw(102)<< right << "----Made by K&L";
+    Sleep(550);
+
+
+    if (time>23)
+    {
+        break;
+    }
+    system("cls");
+    }
+
+    Sleep(3000);
+
+	gotoxy(0,0);
+	for(int i=0;i<24;i++){
+		cout << "                                                                                                              \n";
+		Sleep(350);
+	}
+}
+
+int modeselete(){
+    char mode;
+    char difficulty[2][70]={0};
+    char notification[3][70]={0};
+    int boom = 0 ,boomint=0;
+
+    system ("cls");
+
+    for (int n=0;n<2;n++)
+            {
+                for (int m=0;m<70;m++)
+                {
+                    difficulty[n][m]=' ';
+                }
+            }
+
+            for (int n=0;n<3;n++)
+            {
+                for (int m=0;m<70;m++)
+                {
+                    notification[n][m]=' ';
+                }
+            }
+
+            difficulty[0][0]='<';
+            difficulty[0][1]='<';
+            difficulty[1][0]='<';
+            difficulty[1][1]='<';
+            difficulty[0][69]='>';
+            difficulty[0][68]='>';
+            difficulty[1][69]='>';
+            difficulty[1][68]='>';
+
+            difficulty[0][27]='K';
+            difficulty[0][28]='&';
+            difficulty[0][29]='L';
+            difficulty[0][30]=' ';
+            difficulty[0][31]='B';
+            difficulty[0][32]='a';
+            difficulty[0][33]='t';
+            difficulty[0][34]='t';
+            difficulty[0][35]='l';
+            difficulty[0][36]='e';
+            difficulty[0][37]='s';
+            difficulty[0][38]='h';
+            difficulty[0][39]='i';
+            difficulty[0][40]='p';
+            difficulty[0][41]='s';
+
+
+            difficulty[1][29]='B';
+            difficulty[1][30]='a';
+            difficulty[1][31]='t';
+            difficulty[1][32]='t';
+            difficulty[1][33]='l';
+            difficulty[1][34]='e';
+            difficulty[1][35]='f';
+            difficulty[1][36]='i';
+            difficulty[1][37]='e';
+            difficulty[1][38]='l';
+            difficulty[1][39]='d';
+
+            cout << setw(2)<<left;
+
+            cout << "----------------------------------------------------------------------\n";
+
+            for (int i=0;i<2;i++)
+            {
+                for (int j=0;j<70;j++)
+                {
+                    cout << difficulty[i][j];
+                }
+                    cout << endl;
+            }
+
+            cout << "----------------------------------------------------------------------\n\n";
+
+            cout << "\t\t\t"<<" A) Azure sky\n";
+
+            cout << "\t\t\t"<<" B) Nebulous forest\n";
+
+            cout <<endl<<"   Destination : \n";
+
+            cout << setw(2)<<left;
+
+            cout << "\n\n\n\n\n"<<"######################################################################\n";
+
+            cout << "Informations : \n\n";
+
+            cout << "*Nebulous forest : A battlefield in which your missed attacks would not be\n";
+			cout << "                   shown, so you have to remember them .\n\n";
+
+            cout << "*Blasting time : Each player will be distributed three bombs to use.\n\n";
+            cout << "*Bomb : A weapon which will bombard a 2X2 square on the battlefiald.\n\n";
+
+            cout << "######################################################################\n";
+
+            COORD position;
+            position.X = 16;
+            position.Y = 8;
+            SetConsoleCursorPosition(screen, position);
+
+            cin >> mode;
+
+            cout <<endl<< "   Blasting time (on/off) < insert (1/0) > : ";
+
+            cin  >> boom;
+
+            boomint = toupper(mode);
+
+            boom = (2*boom) + boomint ;
+
+            switch(boom)
+            {
+            case 65:
+                return 1;
+            break;
+
+            case 66:
+                return 2;
+            break;
+
+            case 67:
+                return 3;
+            break;
+
+            case 68:
+                return 4;
+            break;
+            }
+
+}
+
+int destiny(int chose){
+    int county=1;
+
+    while (!(chose==1||chose==2||chose==3))
+    {
+        cout <<endl<<endl<<endl;
+
+        cout << "Wrong answer you dumb ass!\n"<<endl;
+
+        cout << "Choose again!\n";
+
+        Sleep (1500);
+
+        system ("cls");
+
+        cout << "Choose : ";
+
+        cin >> chose;
+
+        if (county ==3)
+        {
+            chose=3;
+            break;
+        }
+        county++;
+
+    }
+
+
+
+    switch (chose)
+    {
+        case 1:
+            story ();
+            break;
+        case 2:
+            exit(1);
+        case 3:
+            system ("cls");
+            cout << "Brilliant ";
+            Sleep (1500);
+            system ("cls");
+            cout.fill(' ');
+            cout <<endl<<endl<<endl;
+            Sleep (3000);
+            cout <<setw(70) <<left<< "If you get hurted, this game, your friend, will never leave you."<<endl<<endl;
+            Sleep (3000);
+            cout <<setw(70) <<left<< "Don't run away from your failure."<<endl<<endl;
+            Sleep (3000);
+            cout <<setw(70) <<left<< "Just suck it up and move on."<<endl<<endl;
+            Sleep (3000);
+            cout <<setw(70) <<left<< "May the force be with you.--------------------------------------------K&L "<<endl<<endl;
+            Sleep (5000);
+            system ("cls");
+            Sleep (2000);
+
+            return chose;
+    }
+}
+
+void story(){
+    system ("cls");
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "Long time ago, there were several pirates in the world trying to plunder every passengers's treasure.";
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "The most notorious one was called 'Kai Chieh Yeh.'";
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "He and his girlfriend ruled the half of Pacific ocean.";
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "Every single piece of his conscious was rotten.";
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "However, on the other hand, there still existed one hero called 'ICE Lin.'";
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "He did his utmost to fight againest every pirate he encountered";
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "But, ";
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "Our greatest hero didn't have girlfriend.(IG: jelin____0130)";
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "That is, this is not only the fight between justice and evil";
+    cout <<endl<<endl;
+    Sleep (3000);
+
+    cout << "but also the war between eligible bachelor and sweet couple.";
+
+    Sleep (4000);
+}
+
+
+
+
